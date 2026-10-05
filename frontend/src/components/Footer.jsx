@@ -55,7 +55,7 @@ export default function Footer() {
 
             <div className="border-t border-slate-800">
                 <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
-                    <div>© {new Date().getFullYear()} Elegant Home Advisors. All rights reserved.</div>
+                    <div>© {new Date().getFullYear()} Elegant Home Advisors. All rights reserved. · MahaRERA: <span className="text-slate-300 font-medium">A031332601432</span></div>
                     <div className="flex gap-6">
     <Link
         to="/privacy-policy"

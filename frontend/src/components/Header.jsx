@@ -63,21 +63,17 @@ export default function Header() {
                         <IconLink to="/shortlist" icon={Heart} label="Shortlisted properties" count={shortlist.ids.length} testId="nav-shortlist" />
                         <IconLink to="/compare" icon={Scale} label="Compare properties" count={compare.ids.length} testId="nav-compare" />
                     </div>
-                    <div className="hidden lg:flex flex-col items-end gap-1">
-    <div className="text-[12px] font-medium text-[var(--navy)] tracking-wide">
-    RERA Number: <span className="font-semibold">A031332601432</span>
-</div>
-
-    {showPhone && settings?.phone && (
-        <a
-            href={`tel:${settings.phone}`}
-            data-testid="header-call-btn"
-            className="btn-outline-gold text-[13px]"
-        >
-            <Phone size={16} /> {settings.phone}
-        </a>
-    )}
-</div>
+                    <div className="hidden lg:flex items-center gap-3">
+                        {showPhone && settings?.phone && (
+                            <a
+                                href={`tel:${settings.phone}`}
+                                data-testid="header-call-btn"
+                                className="btn-outline-gold text-[13px] py-2 px-5 whitespace-nowrap"
+                            >
+                                <Phone size={15} /> {settings.phone}
+                            </a>
+                        )}
+                    </div>
 
                     <div className="lg:hidden flex items-center">
                         <IconLink to="/shortlist" icon={Heart} label="Shortlisted properties" count={shortlist.ids.length} testId="nav-shortlist-m" />
@@ -95,9 +91,6 @@ export default function Header() {
 
                 {open && (
                     <div className="lg:hidden pb-6 space-y-3" data-testid="mobile-nav">
-                        <div className="text-[12px] font-medium text-[var(--navy)] tracking-wide pb-3 border-b border-slate-200">
-    RERA Number: <span className="font-semibold">A031332601432</span>
-</div>
                         {NAV.map((n) => (
                             <NavLink
                                 key={n.label}
