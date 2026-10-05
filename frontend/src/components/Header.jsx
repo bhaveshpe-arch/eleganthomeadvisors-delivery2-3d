@@ -1,9 +1,7 @@
 import React from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Phone, Menu, X, Heart, Scale } from "lucide-react";
-import { useSettings } from "@/context/SettingsContext";
+import { Link, NavLink } from "react-router-dom";
+import { Menu, X, Heart, Scale } from "lucide-react";
 import { useShortlist, useCompare } from "@/lib/listStore";
-import { isPropertyRoute } from "@/lib/contactGate";
 
 const NAV = [
     { to: "/", label: "Home" },
@@ -16,10 +14,7 @@ const NAV = [
 ];
 
 export default function Header() {
-    const { settings } = useSettings();
     const [open, setOpen] = React.useState(false);
-    const { pathname } = useLocation();
-    const showPhone = !isPropertyRoute(pathname);
     const shortlist = useShortlist();
     const compare = useCompare();
     const IconLink = ({ to, icon: Icon, label, count, testId }) => (
@@ -63,18 +58,6 @@ export default function Header() {
                         <IconLink to="/shortlist" icon={Heart} label="Shortlisted properties" count={shortlist.ids.length} testId="nav-shortlist" />
                         <IconLink to="/compare" icon={Scale} label="Compare properties" count={compare.ids.length} testId="nav-compare" />
                     </div>
-                    <div className="hidden lg:flex items-center gap-3">
-                        {showPhone && settings?.phone && (
-                            <a
-                                href={`tel:${settings.phone}`}
-                                data-testid="header-call-btn"
-                                className="btn-outline-gold text-[13px] py-2 px-5 whitespace-nowrap"
-                            >
-                                <Phone size={15} /> {settings.phone}
-                            </a>
-                        )}
-                    </div>
-
                     <div className="lg:hidden flex items-center">
                         <IconLink to="/shortlist" icon={Heart} label="Shortlisted properties" count={shortlist.ids.length} testId="nav-shortlist-m" />
                     <button
@@ -102,11 +85,6 @@ export default function Header() {
                             </NavLink>
                         ))}
                         <NavLink to="/compare" onClick={() => setOpen(false)} className="block py-2 text-[15px] text-slate-700 border-b border-slate-100">Compare properties{compare.ids.length ? ` (${compare.ids.length})` : ""}</NavLink>
-                        {showPhone && settings?.phone && (
-                            <a href={`tel:${settings.phone}`} className="btn-primary w-full justify-center mt-4">
-                                <Phone size={16} /> Call {settings.phone}
-                            </a>
-                        )}
                     </div>
                 )}
             </div>
