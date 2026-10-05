@@ -262,10 +262,11 @@ def test_image_upload_validates_and_serves(client, admin):
 
 
 def test_site_visit_and_home_visit_support(client):
-    # Test standard site visit
+    # Test standard site visit with pickup and drop
     sv_payload = {
         "inquiry_type": "Site Visit", "full_name": "Rohan Sharma", "phone": "9876543210",
         "email": "rohan@example.com", "kind": "site_visit", "visit_type": "site_visit",
+        "pickup_location": "Bandra Kurla Complex", "drop_location": "Bandra West",
         "preferred_date": "2026-12-15", "preferred_time": "11 AM – 1 PM", "visitors": 2
     }
     r = client.post("/api/inquiries", json=sv_payload)
@@ -273,20 +274,24 @@ def test_site_visit_and_home_visit_support(client):
     res = r.json()
     assert res["status"] == "site_visit_requested"
     assert res["visit_type"] == "site_visit"
-    assert res["home_address"] == ""
+    assert res["pickup_location"] == "Bandra Kurla Complex"
+    assert res["drop_location"] == "Bandra West"
+    assert res["visitors"] == 2
+    assert any("Pickup:" in act["text"] for act in res["activity"])
 
-    # Test home visit with address
+    # Test home visit with address (visitors forced to 0)
     hv_payload = {
         "inquiry_type": "Site Visit", "full_name": "Priya Patel", "phone": "9812345678",
         "email": "priya@example.com", "kind": "site_visit", "visit_type": "home_visit",
         "home_address": "Flat 402, Royal Palms, Hiranandani Estate, Thane West",
-        "preferred_date": "2026-12-16", "preferred_time": "3 PM – 5 PM", "visitors": 1
+        "preferred_date": "2026-12-16", "preferred_time": "3 PM – 5 PM", "visitors": 5
     }
     r2 = client.post("/api/inquiries", json=hv_payload)
     assert r2.status_code == 200
     res2 = r2.json()
     assert res2["status"] == "site_visit_requested"
     assert res2["visit_type"] == "home_visit"
+    assert res2["visitors"] == 0  # No visitors on home visit
     assert "Hiranandani Estate" in res2["home_address"]
     # Verify address recorded in activity timeline
     assert any("Address:" in act["text"] for act in res2["activity"])

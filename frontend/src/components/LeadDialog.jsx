@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2, CalendarCheck, PhoneCall, FileDown, MessageSquare, Info, Home } from "lucide-react";
+import { CheckCircle2, Loader2, CalendarCheck, PhoneCall, FileDown, MessageSquare, Info, Home, Car } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { TextField, SelectField, TextAreaField } from "@/components/form";
 import api, { formatApiError } from "@/lib/api";
@@ -44,7 +44,7 @@ export default function LeadDialog({ mode = "enquiry", open, onOpenChange, prope
     const [locations, setLocations] = useState([]);
     const [f, setF] = useState({
         full_name: "", phone: "", email: "", preferred_date: "", slot: "", other_time: "", visitors: "2",
-        visit_type: "site_visit", home_address: "",
+        visit_type: "site_visit", home_address: "", pickup_location: "", drop_location: "",
         alt_date: "", alt_time: "", message: defaultMessage, location: "", callback_time: CALLBACK_TIMES[0],
     });
     const [showAlt, setShowAlt] = useState(false);
@@ -55,7 +55,7 @@ export default function LeadDialog({ mode = "enquiry", open, onOpenChange, prope
     const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
     const min = useMemo(todayLocal, []);
 
-    useEffect(() => { if (open) { setDone(false); setFormError(""); setErrors({}); setF((s) => ({ ...s, message: defaultMessage, visit_type: "site_visit", home_address: "" })); } }, [open, defaultMessage]);
+    useEffect(() => { if (open) { setDone(false); setFormError(""); setErrors({}); setF((s) => ({ ...s, message: defaultMessage, visit_type: "site_visit", home_address: "", pickup_location: "", drop_location: "" })); } }, [open, defaultMessage]);
     useEffect(() => {
         if (open && !property && !locations.length) api.get("/locations").then((r) => setLocations(r.data)).catch(() => {});
     }, [open, property, locations.length]);
@@ -97,9 +97,11 @@ export default function LeadDialog({ mode = "enquiry", open, onOpenChange, prope
                 message,
                 preferred_date: mode === "site_visit" ? f.preferred_date : "",
                 preferred_time,
-                visitors: mode === "site_visit" ? Number(f.visitors) || 0 : 0,
+                visitors: (mode === "site_visit" && f.visit_type === "site_visit") ? (Number(f.visitors) || 0) : 0,
                 visit_type: mode === "site_visit" ? f.visit_type : "site_visit",
                 home_address: (mode === "site_visit" && f.visit_type === "home_visit") ? f.home_address.trim() : "",
+                pickup_location: (mode === "site_visit" && f.visit_type === "site_visit") ? f.pickup_location.trim() : "",
+                drop_location: (mode === "site_visit" && f.visit_type === "site_visit") ? f.drop_location.trim() : "",
                 alternate_date: showAlt ? f.alt_date : "",
                 alternate_time: showAlt ? f.alt_time : "",
                 property_id: property?.id || "", property_name: property?.name || "",
@@ -196,13 +198,37 @@ export default function LeadDialog({ mode = "enquiry", open, onOpenChange, prope
                                                 />
                                             </div>
                                         )}
+                                        {f.visit_type === "site_visit" && (
+                                            <div className="pt-2 space-y-2">
+                                                <div className="text-xs font-medium text-slate-700 flex items-center gap-1.5">
+                                                    <Car size={14} className="text-[var(--gold-dark)]" />
+                                                    Pickup &amp; Drop Assistance (Optional)
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <TextField
+                                                        label="Pickup location"
+                                                        placeholder="e.g. Your address or nearest landmark"
+                                                        value={f.pickup_location}
+                                                        onChange={(e) => set("pickup_location", e.target.value)}
+                                                    />
+                                                    <TextField
+                                                        label="Drop location"
+                                                        placeholder="e.g. Same as pickup, or specific area"
+                                                        value={f.drop_location}
+                                                        onChange={(e) => set("drop_location", e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className={`grid grid-cols-1 ${f.visit_type === "site_visit" ? "sm:grid-cols-2" : ""} gap-3`}>
                                         <TextField label="Preferred date" required type="date" min={min} value={f.preferred_date} onChange={(e) => set("preferred_date", e.target.value)} error={errors.preferred_date} />
-                                        <SelectField label="Number of visitors" value={f.visitors} onChange={(e) => set("visitors", e.target.value)}>
-                                            {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => <option key={n} value={n}>{n}{n === 10 ? "+" : ""}</option>)}
-                                        </SelectField>
+                                        {f.visit_type === "site_visit" && (
+                                            <SelectField label="Number of visitors" value={f.visitors} onChange={(e) => set("visitors", e.target.value)}>
+                                                {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => <option key={n} value={n}>{n}{n === 10 ? "+" : ""}</option>)}
+                                            </SelectField>
+                                        )}
                                     </div>
                                     <fieldset>
                                         <legend className="text-xs font-medium text-slate-700">Preferred time <span className="text-red-500" aria-hidden="true">*</span></legend>

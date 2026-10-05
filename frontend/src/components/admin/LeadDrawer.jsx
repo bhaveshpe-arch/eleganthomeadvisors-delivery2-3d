@@ -79,8 +79,10 @@ export default function LeadDrawer({ lead, onClose, onUpdated, mode = "admin", e
                     <Row label="Preferred visit">{cur.preferred_date && `${fmtDate(cur.preferred_date)}${cur.preferred_time ? `, ${cur.preferred_time}` : ""}`}</Row>
                     {cur.visit_type && <Row label="Visit type"><span className="font-medium text-[var(--gold-dark)]">{cur.visit_type === "home_visit" ? "Home Visit" : "Site Visit"}</span></Row>}
                     {cur.home_address && <Row label="Home address"><span className="text-slate-800 font-medium">{cur.home_address}</span></Row>}
+                    {cur.pickup_location && <Row label="Pickup location">{cur.pickup_location}</Row>}
+                    {cur.drop_location && <Row label="Drop location">{cur.drop_location}</Row>}
                     <Row label="Alternate">{cur.alternate_date && `${fmtDate(cur.alternate_date)}${cur.alternate_time ? `, ${cur.alternate_time}` : ""}`}</Row>
-                    <Row label="Visitors">{cur.visitors > 0 ? String(cur.visitors) : ""}</Row>
+                    {cur.visit_type !== "home_visit" && <Row label="Visitors">{cur.visitors > 0 ? String(cur.visitors) : ""}</Row>}
                 </dl>
                 {cur.message && <div className="mt-3 text-sm text-slate-700 bg-slate-50 rounded-xl p-3 whitespace-pre-line">{cur.message}</div>}
 

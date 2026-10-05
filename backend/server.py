@@ -281,6 +281,8 @@ class InquiryIn(BaseModel):
     visitors: int = 0
     visit_type: str = "site_visit"   # site_visit | home_visit
     home_address: str = ""           # address for Home Visit
+    pickup_location: str = ""        # pickup location for Site Visit
+    drop_location: str = ""          # drop location for Site Visit
     alternate_date: str = ""
     alternate_time: str = ""
 
@@ -927,9 +929,11 @@ async def submit_inquiry(payload: InquiryIn, request: Request):
     data["preferred_time"] = _clean(payload.preferred_time, 60)
     data["alternate_time"] = _clean(payload.alternate_time, 60)
     data["source"] = _clean(payload.source, 60) or "website"
-    data["visitors"] = max(0, min(int(payload.visitors or 0), 50))
+    data["visitors"] = max(0, min(int(payload.visitors or 0), 50)) if payload.visit_type != "home_visit" else 0
     data["visit_type"] = "home_visit" if payload.visit_type == "home_visit" else "site_visit"
     data["home_address"] = _clean(payload.home_address, 500)
+    data["pickup_location"] = _clean(payload.pickup_location, 500)
+    data["drop_location"] = _clean(payload.drop_location, 500)
     data["kind"] = payload.kind if payload.kind in INQUIRY_KINDS else "enquiry"
     # Always trust the database over the browser for the property name
     if payload.property_id:
@@ -950,6 +954,11 @@ async def submit_inquiry(payload: InquiryIn, request: Request):
         first += f" · preferred {format_inquiry_date(inq.preferred_date)}" + (f", {inq.preferred_time}" if inq.preferred_time else "")
     if inq.kind == "site_visit" and inq.visit_type == "home_visit" and inq.home_address:
         first += f" · Address: {inq.home_address}"
+    if inq.kind == "site_visit" and inq.visit_type == "site_visit":
+        if inq.pickup_location:
+            first += f" · Pickup: {inq.pickup_location}"
+        if inq.drop_location:
+            first += f" · Drop: {inq.drop_location}"
     inq.activity.append(add_activity("created", first, by=inq.full_name))
 
     employee = await find_employee_for_location(location)
@@ -1294,6 +1303,9 @@ async def send_lead_email(inq: "Inquiry") -> None:
             <tr><td style="padding:6px 0;color:#94A3B8;">Preferred Time</td><td style="padding:6px 0;text-align:right;">{format_inquiry_time(inq.preferred_time)}</td></tr>
             {f'<tr><td style="padding:6px 0;color:#94A3B8;">Visit Preference</td><td style="padding:6px 0;text-align:right;font-weight:600;color:#C5A880;">{"Home Visit (At Customer Address)" if inq.visit_type == "home_visit" else "Site Visit"}</td></tr>' if inq.kind == "site_visit" else ''}
             {f'<tr><td style="padding:6px 0;color:#94A3B8;">Home Address</td><td style="padding:6px 0;text-align:right;">{inq.home_address}</td></tr>' if inq.home_address else ''}
+            {f'<tr><td style="padding:6px 0;color:#94A3B8;">Pickup Location</td><td style="padding:6px 0;text-align:right;">{inq.pickup_location}</td></tr>' if inq.pickup_location else ''}
+            {f'<tr><td style="padding:6px 0;color:#94A3B8;">Drop Location</td><td style="padding:6px 0;text-align:right;">{inq.drop_location}</td></tr>' if inq.drop_location else ''}
+            {f'<tr><td style="padding:6px 0;color:#94A3B8;">Number of Visitors</td><td style="padding:6px 0;text-align:right;">{inq.visitors}</td></tr>' if inq.visit_type != "home_visit" and inq.visitors > 0 else ''}
           </table>
           {f'<div style="margin-top:16px;padding:14px 16px;background:#F8FAFC;border-radius:12px;font-size:14px;color:#475569;"><b style="color:#0A192F;">Message:</b><br/>{inq.message}</div>' if inq.message else ''}
           <div style="margin-top:24px;text-align:center;">
