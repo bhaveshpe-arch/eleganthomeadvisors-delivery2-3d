@@ -1,0 +1,112 @@
+{
+  "theme_and_tone": {
+    "theme": "Light mode with deep navy and gold accents",
+    "tone": "Bespoke, refined, elegant, cinematic, luxurious",
+    "vibe": "Trophy property exclusivity, minimalist sophistication"
+  },
+  "typography": {
+    "headings": {
+      "font": "Cormorant Garamond",
+      "style": "Serif, highly elegant, tracking-tight for larger sizes",
+      "weights": "Light (300), Regular (400), and SemiBold (600)"
+    },
+    "body": {
+      "font": "Outfit",
+      "style": "Clean geometric sans-serif for high legibility, contrasting the serif headings",
+      "weights": "Light (300), Regular (400), Medium (500)"
+    },
+    "rules": "H1 max text-5xl/6xl. Overlines uppercase tracking-widest text-xs. Do not use generic fonts like Inter, Roboto, Poppins."
+  },
+  "colors": {
+    "background": {
+      "base": "#FDFBF7",
+      "card": "#FFFFFF",
+      "overlay": "rgba(10, 25, 47, 0.4)",
+      "dashboard": "#F8FAFC"
+    },
+    "primary": {
+      "brand": "#0A192F",
+      "brand_hover": "#172A45"
+    },
+    "accent": {
+      "gold": "#C5A880",
+      "gold_light": "#E6D5B8",
+      "gold_dark": "#B39265"
+    },
+    "text": {
+      "primary": "#0A192F",
+      "secondary": "#475569",
+      "inverse": "#FFFFFF",
+      "muted": "#94A3B8"
+    },
+    "status": {
+      "new_launch": "#10B981",
+      "hot_deal": "#EF4444",
+      "limited": "#F59E0B"
+    }
+  },
+  "layouts_and_grids": {
+    "general": "Generous spacing. Use p-8 to p-16. Containers must have internal padding. Optical alignment over geometric.",
+    "hero": "Cinematic full-bleed or large inset image. Hero text must be readable with gradient overlay (not flat blanket overlay).",
+    "bento_grid": "Use asymmetric bento grids for 'Browse by Category' and 'Locations'. Let some cells be images, others be minimal text + gold accent.",
+    "property_cards": "Clean grid precision. Minimalist data display with focus on high-quality images and clear hierarchy.",
+    "dashboard": "Strict grid hierarchy, dense and compact spacing. Sidebar navigation with main content area."
+  },
+  "components": {
+    "cards": "Prominent rounded corners (rounded-xl or rounded-2xl) as per user choice. White background, subtle 1px border. Ambient soft shadows only (shadow-sm or shadow-md on hover).",
+    "buttons": "Primary: Solid Navy (#0A192F) with white text. Secondary: Outline with Gold border and Navy text. Rounded styles to match the cards (rounded-full or rounded-lg).",
+    "header": "Glassmorphism. backdrop-blur-xl bg-white/80. 1px bottom border border-slate-200. Must not be completely transparent.",
+    "whatsapp_floating": "Bottom-right fixed. Elegant pulsing green/gold shadow. Clicking opens a polished modal with QR code and direct chat link.",
+    "badges": "Minimalist with rounded corners. px-2 py-1 text-xs uppercase tracking-wider. bg-slate-100 text-slate-800 or custom status colors.",
+    "inputs": "Shadcn based. 1px border-slate-300, focus:ring-gold focus:border-gold. Clean, ample padding, rounded corners."
+  },
+  "motion_and_interaction": {
+    "hover": "Cards lift slightly (-translate-y-1) with shadow-md. Images scale up (scale-105) inside hidden overflow.",
+    "transitions": "Use specific transitions (e.g., transition-transform duration-500 ease-out). No universal 'transition-all'.",
+    "scroll": "Staggered fade-up entrances for property lists and grid items."
+  },
+  "accessibility": {
+    "contrast": "Ensure gold text on white has sufficient contrast, fallback to navy for smaller text. All interactive elements must have clear focus states.",
+    "testing": "All interactive and key informational elements MUST include a data-testid attribute."
+  },
+  "page_sections": {
+    "homepage": [
+      "Hero with cinematic image, elegant H1, and floating search bar overlay",
+      "Featured Projects Grid (large rounded cards)",
+      "Browse by Category (3 asymmetric bento cards)",
+      "Browse by Location (5 cards, masonry or horizontal scroll)",
+      "Why Choose Us (minimal text, refined iconography)",
+      "Featured Builders (monochrome logo strip)",
+      "Latest Properties (Grid of rounded property cards)",
+      "Testimonials (Clean carousel with professional portraits)",
+      "FAQ (Accordion, minimalist styling)",
+      "Contact & Footer"
+    ],
+    "property_listing": "Filter sidebar on left (category, location, budget, config). Grid of property cards on right.",
+    "property_detail": "Large gallery grid at top (1 main, 2 smaller side). Details in 2-column layout (Main content vs Sticky Inquiry Sidebar). Includes overview, amenities, map.",
+    "admin_dashboard": "Sidebar navigation. Dense, data-heavy tables using Shadcn. Neutral grays with navy headers. Focus on utility for property/inquiry management."
+  },
+  "image_urls": {
+    "hero_mansion": "https://images.pexels.com/photos/7031594/pexels-photo-7031594.jpeg",
+    "penthouse_living_1": "https://images.pexels.com/photos/30211361/pexels-photo-30211361.jpeg",
+    "penthouse_living_2": "https://images.unsplash.com/photo-1688646953306-5ec93eab8c06",
+    "modern_building_1": "https://images.pexels.com/photos/9458996/pexels-photo-9458996.jpeg",
+    "testimonial_portrait_1": "https://images.unsplash.com/photo-1585240975735-4826abe53080",
+    "testimonial_portrait_2": "https://images.unsplash.com/photo-1592246030975-b7d803d99e6a"
+  },
+  "libraries": {
+    "icons": "lucide-react for minimal, crisp iconography",
+    "motion": "framer-motion for elegant, slow staggered reveals",
+    "components": "shadcn/ui for dropdowns, accordions, inputs, tables, dialogs"
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the color palette: No generic blue or purple. Use the provided Navy (#0A192F) and Gold (#C5A880).",
+    "Do not use Inter, Roboto, or Poppins. Implement Cormorant Garamond for headings and Outfit for body. Use Google Fonts imports.",
+    "Ensure all buttons, links, and forms have data-testid attributes.",
+    "Use Shadcn UI for complex components, customize them to have prominent rounded corners (rounded-xl/2xl) as per user request.",
+    "Header must use glassmorphism (bg-white/80 backdrop-blur-xl) and never be fully transparent.",
+    "Avoid standard Bootstrap-like equal columns. Introduce slight asymmetry or overlapping where appropriate in the marketing sections.",
+    "Ensure the Floating WhatsApp button has a custom polished UI, not just a generic green circle. The QR popup should be elegant."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": "Do not make generic centered layouts. Create depth through layered design elements. Use 2-3x more spacing than feels comfortable. Every interaction needs micro-animations. Never use AI emoji characters for icons. Use sonner for toasts. Prioritize existing components from src/components/ui. Add specific transitions, DO NOT use transition-all. Do not center align the app container. Implement robust data-testids."
+}

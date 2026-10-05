@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --navy: #0A192F;
+    --navy-hover: #172A45;
+    --gold: #C5A880;
+    --gold-light: #E6D5B8;
+    --gold-dark: #B39265;
+    --cream: #FDFBF7;
+    --ink: #0A192F;
+    --ink-2: #475569;
+    --ink-3: #94A3B8;
+}
+
+html, body, #root {
+    background: var(--cream);
+    color: var(--ink);
+}
+
+body {
+    margin: 0;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+.font-serif-display {
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    letter-spacing: -0.01em;
+}
+
+.font-body {
+    font-family: 'Outfit', system-ui, sans-serif;
+}
+
+/* Reusable button styles */
+.btn-primary {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 9999px;
+    padding: 12px 26px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: background-color 250ms ease, transform 250ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-primary:hover { background: var(--navy-hover); transform: translateY(-1px); }
+
+.btn-gold {
+    background: var(--gold);
+    color: var(--navy);
+    border-radius: 9999px;
+    padding: 12px 26px;
+    font-weight: 500;
+    transition: background-color 250ms ease, transform 250ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-gold:hover { background: var(--gold-dark); transform: translateY(-1px); }
+
+.btn-outline-gold {
+    background: transparent;
+    color: var(--navy);
+    border: 1.5px solid var(--gold);
+    border-radius: 9999px;
+    padding: 10px 24px;
+    font-weight: 500;
+    transition: background-color 250ms ease, color 250ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-outline-gold:hover { background: var(--gold); color: var(--navy); }
+
+.card-elegant {
+    background: #fff;
+    border: 1px solid rgba(10, 25, 47, 0.08);
+    border-radius: 1.25rem;
+    transition: transform 400ms ease-out, box-shadow 400ms ease-out;
+}
+.card-elegant:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -20px rgba(10, 25, 47, 0.18);
+}
+
+.overline {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    color: var(--gold-dark);
+    font-weight: 500;
+}
+
+.glass-header {
+    background: rgba(253, 251, 247, 0.85);
+    backdrop-filter: saturate(180%) blur(18px);
+    -webkit-backdrop-filter: saturate(180%) blur(18px);
+    border-bottom: 1px solid rgba(10, 25, 47, 0.08);
+}
+
+.hero-gradient {
+    background: linear-gradient(180deg, rgba(10, 25, 47, 0.15) 0%, rgba(10, 25, 47, 0.75) 100%);
+}
+
+.pulse-ring {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    animation: pulse-ring 2.2s infinite;
+}
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.55); }
+    70% { box-shadow: 0 0 0 20px rgba(37, 211, 102, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+.fade-up {
+    animation: fade-up 700ms ease-out both;
+}
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom scrollbar for horizontal scrollers */
+.scroll-x {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.scroll-x::-webkit-scrollbar { display: none; }
+
+.gold-underline {
+    background-image: linear-gradient(var(--gold), var(--gold));
+    background-repeat: no-repeat;
+    background-size: 40% 2px;
+    background-position: 0 100%;
+    padding-bottom: 6px;
+}
+
+@layer base {
+    :root {
+        --background: 40 33% 98%;
+        --foreground: 218 52% 11%;
+        --card: 0 0% 100%;
+        --card-foreground: 218 52% 11%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 218 52% 11%;
+        --primary: 218 52% 11%;
+        --primary-foreground: 40 33% 98%;
+        --secondary: 40 20% 94%;
+        --secondary-foreground: 218 52% 11%;
+        --muted: 40 20% 94%;
+        --muted-foreground: 218 12% 45%;
+        --accent: 36 34% 64%;
+        --accent-foreground: 218 52% 11%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 218 20% 90%;
+        --input: 218 20% 90%;
+        --ring: 36 34% 64%;
+        --radius: 0.85rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* ---------- Shared form controls, focus and loading styles (added) ---------- */
+.field-input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    background: #fff;
+    color: var(--navy);
+}
+.field-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.35); }
+.field-input[aria-invalid="true"] { border-color: #dc2626; }
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--gold-dark);
+    outline-offset: 2px;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #eef2f6 25%, #f8fafc 37%, #eef2f6 63%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+.skip-link {
+    position: absolute; left: 1rem; top: -4rem; z-index: 100;
+    background: var(--navy); color: #fff; padding: 0.6rem 1rem; border-radius: 0.5rem;
+}
+.skip-link:focus { top: 1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
