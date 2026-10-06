@@ -85,22 +85,25 @@ export default function Lightbox({ items, index, onIndex, onClose, label = "Imag
 
     if (!item) return null;
     return (
-        <div role="dialog" aria-modal="true" aria-label={label} className="fixed inset-0 z-[80] bg-black/95 flex flex-col" data-testid="lightbox">
-            <div className="flex items-center justify-between px-4 py-3 text-white">
-                <div className="text-sm" aria-live="polite">{index + 1} / {count}</div>
-                <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => zoom(scale - 0.5)} aria-label="Zoom out" className="p-2 rounded-full hover:bg-white/10"><ZoomOut size={20} /></button>
-                    <button type="button" onClick={() => zoom(scale + 0.5)} aria-label="Zoom in" className="p-2 rounded-full hover:bg-white/10"><ZoomIn size={20} /></button>
-                    <button type="button" onClick={reset} aria-label="Reset zoom" className="p-2 rounded-full hover:bg-white/10"><RotateCcw size={18} /></button>
+        <div role="dialog" aria-modal="true" aria-label={label} className="fixed inset-0 z-[80] bg-black flex flex-col" data-testid="lightbox">
+            <div className="flex items-center justify-between px-4 py-3 text-white border-b border-white/10 shrink-0">
+                <div className="flex items-center gap-3 min-w-0" aria-live="polite">
+                    {count > 1 && <span className="text-xs font-mono bg-white/15 px-2 py-0.5 rounded text-white shrink-0">{index + 1} / {count}</span>}
+                    {item.alt && <span className="text-sm font-medium text-white/90 truncate">{item.alt}</span>}
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                    <button type="button" onClick={() => zoom(scale - 0.5)} aria-label="Zoom out" title="Zoom out" className="p-2 rounded-full hover:bg-white/10"><ZoomOut size={20} /></button>
+                    <button type="button" onClick={() => zoom(scale + 0.5)} aria-label="Zoom in" title="Zoom in" className="p-2 rounded-full hover:bg-white/10"><ZoomIn size={20} /></button>
+                    <button type="button" onClick={reset} aria-label="Reset zoom" title="Reset zoom (fit screen)" className="p-2 rounded-full hover:bg-white/10"><RotateCcw size={18} /></button>
                     {item.download && (
-                        <a href={item.download} target="_blank" rel="noreferrer" download aria-label="Download" className="p-2 rounded-full hover:bg-white/10"><Download size={20} /></a>
+                        <a href={item.download} target="_blank" rel="noreferrer" download aria-label="Download" title="Download image" className="p-2 rounded-full hover:bg-white/10"><Download size={20} /></a>
                     )}
-                    <button ref={closeRef} type="button" onClick={onClose} aria-label="Close viewer" className="p-2 rounded-full hover:bg-white/10" data-testid="lightbox-close"><X size={22} /></button>
+                    <button ref={closeRef} type="button" onClick={onClose} aria-label="Close viewer" title="Close (Esc)" className="p-2 rounded-full hover:bg-white/10" data-testid="lightbox-close"><X size={22} /></button>
                 </div>
             </div>
 
             <div
-                className="relative flex-1 overflow-hidden grid place-items-center select-none"
+                className="relative flex-1 min-h-0 min-w-0 w-full overflow-hidden flex items-center justify-center p-2 sm:p-4 select-none"
                 style={{ touchAction: "none", cursor: scale > 1 ? (dragging ? "grabbing" : "grab") : "zoom-in" }}
                 onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
                 onDoubleClick={() => zoom(scale > 1 ? 1 : 2.5)}
@@ -109,17 +112,22 @@ export default function Lightbox({ items, index, onIndex, onClose, label = "Imag
                 <img
                     src={item.src} alt={item.alt || ""} draggable={false}
                     onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMG; }}
-                    className="max-w-full max-h-full object-contain"
-                    style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, transition: dragging ? "none" : "transform 150ms ease-out" }}
+                    className="object-contain pointer-events-none select-none max-w-full max-h-full w-auto h-auto"
+                    style={{
+                        maxHeight: "calc(100vh - 105px)",
+                        maxWidth: "calc(100vw - 24px)",
+                        transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`,
+                        transition: dragging ? "none" : "transform 150ms ease-out"
+                    }}
                 />
                 {count > 1 && (
                     <>
-                        <button type="button" onClick={() => go(-1)} aria-label="Previous image" className="absolute left-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70"><ChevronLeft size={24} /></button>
-                        <button type="button" onClick={() => go(1)} aria-label="Next image" className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70"><ChevronRight size={24} /></button>
+                        <button type="button" onClick={() => go(-1)} aria-label="Previous image" className="absolute left-3 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 text-white hover:bg-black/80"><ChevronLeft size={24} /></button>
+                        <button type="button" onClick={() => go(1)} aria-label="Next image" className="absolute right-3 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 text-white hover:bg-black/80"><ChevronRight size={24} /></button>
                     </>
                 )}
             </div>
-            <div className="text-center text-[11px] text-white/60 py-2">Scroll, pinch or double-click to zoom · Arrow keys to move · Esc to close</div>
+            <div className="text-center text-[11px] text-white/60 py-2 border-t border-white/10 shrink-0">Scroll, pinch or double-click to zoom · Arrow keys or drag to pan · Esc to close</div>
         </div>
     );
 }

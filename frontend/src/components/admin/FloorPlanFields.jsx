@@ -1,11 +1,10 @@
-import React, { Suspense, lazy, useState } from "react";
-import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
-import { Mini, FeetInput, useDebounced } from "@/components/admin/editorBits";
+import React, { useState } from "react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Box } from "lucide-react";
+import { Mini, FeetInput } from "@/components/admin/editorBits";
 import RoomMarker from "@/components/admin/RoomMarker";
-import { safeUrl } from "@/lib/media";
+import { safeUrl, PLACEHOLDER_IMG } from "@/lib/media";
 import UploadButton from "@/components/admin/UploadButton";
 
-const Plan3D = lazy(() => import("@/components/media/Plan3D"));
 const AREA_TYPES = ["Carpet Area", "Built-up Area", "Super Built-up Area"];
 
 export const blankPlan = () => ({
@@ -13,13 +12,11 @@ export const blankPlan = () => ({
     area_type: "", rooms_image: "2d", auto_3d: false, auto_3d_threshold: 115, auto_3d_detail: 1, auto_3d_height: 6,
 });
 
-/** One layout in the property editor: size, pictures, room sizes, room highlight boxes and the automatic 3D view. */
+/** One layout in the property editor: size, pictures, room sizes, room highlight boxes and the 3D view. */
 export default function FloorPlanFields({ fp, index, total, onChange, onMove, onRemove }) {
     const [marking, setMarking] = useState(false);
-    const [stats, setStats] = useState(null);
     const set = (patch) => onChange({ ...fp, ...patch });
     const setRoom = (k, patch) => set({ rooms: fp.rooms.map((x, n) => (n === k ? { ...x, ...patch } : x)) });
-    const threshold = useDebounced(fp.auto_3d_threshold), detail = useDebounced(fp.auto_3d_detail), wallH = useDebounced(fp.auto_3d_height);
     const markImage = safeUrl(fp.rooms_image === "3d" ? fp.image_3d : fp.image);
 
     return (
@@ -46,8 +43,14 @@ export default function FloorPlanFields({ fp, index, total, onChange, onMove, on
             </div>
             <datalist id="areatypes">{AREA_TYPES.map((a) => <option key={a} value={a} />)}</datalist>
 
-            <div className="flex gap-2"><input value={fp.image} onChange={(e) => set({ image: e.target.value })} placeholder="2D floor plan image link" aria-label="Floor plan image link" className="field-input flex-1 min-w-0" /><UploadButton label="Upload 2D" onDone={(u) => set({ image: u })} testId={`upload-2d-${index}`} /></div>
-            <div className="flex gap-2"><input value={fp.image_3d} onChange={(e) => set({ image_3d: e.target.value })} placeholder="3D furnished floor plan image link (optional)" aria-label="3D floor plan image link" className="field-input flex-1 min-w-0" /><UploadButton label="Upload 3D" onDone={(u) => set({ image_3d: u })} testId={`upload-3d-${index}`} /></div>
+            <div className="flex gap-2">
+                <input value={fp.image} onChange={(e) => set({ image: e.target.value })} placeholder="2D floor plan image link" aria-label="Floor plan image link" className="field-input flex-1 min-w-0" />
+                <UploadButton label="Upload 2D" onDone={(u) => set({ image: u })} testId={`upload-2d-${index}`} />
+            </div>
+            <div className="flex gap-2">
+                <input value={fp.image_3d} onChange={(e) => set({ image_3d: e.target.value, auto_3d: Boolean(e.target.value) })} placeholder="3D furnished floor plan image link (optional)" aria-label="3D floor plan image link" className="field-input flex-1 min-w-0" />
+                <UploadButton label="Upload 3D" onDone={(u) => set({ image_3d: u, auto_3d: true, rooms_image: "3d" })} testId={`upload-3d-${index}`} />
+            </div>
             <input value={fp.download_url} onChange={(e) => set({ download_url: e.target.value })} placeholder="Downloadable PDF link (optional)" aria-label="Download link" className="field-input" />
 
             <div>
@@ -74,7 +77,7 @@ export default function FloorPlanFields({ fp, index, total, onChange, onMove, on
                         {marking && (
                             <div className="mt-3 space-y-3">
                                 <label className="text-xs text-slate-600 block">Draw the boxes on
-                                    <select value={fp.rooms_image || "2d"} onChange={(e) => set({ rooms_image: e.target.value })} className="field-input mt-1 bg-white max-w-xs">
+                                    <select value={fp.rooms_image || (fp.image_3d ? "3d" : "2d")} onChange={(e) => set({ rooms_image: e.target.value })} className="field-input mt-1 bg-white max-w-xs">
                                         <option value="2d">the 2D plan</option>
                                         <option value="3d">the 3D image</option>
                                     </select>
@@ -86,32 +89,77 @@ export default function FloorPlanFields({ fp, index, total, onChange, onMove, on
                 )}
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-3">
-                <label className="flex items-start gap-2 text-sm text-slate-700">
-                    <input type="checkbox" className="mt-1" checked={!!fp.auto_3d} onChange={(e) => set({ auto_3d: e.target.checked })} data-testid={`auto3d-${index}`} />
-                    <span>
-                        <span className="font-medium text-[var(--navy)]">Offer an approximate 3D view built automatically from the 2D plan</span>
-                        <span className="block text-[11px] text-slate-500 mt-0.5">Works best with a clean drawing that has thick dark walls. Nothing is uploaded or stored: the 3D view is built in the visitor's browser. It shows walls only, no furniture. Plans uploaded from your computer work with this. A pasted link must come from a host that allows other websites to read it (for example Cloudinary).</span>
-                    </span>
-                </label>
-                {fp.auto_3d && (
-                    <div className="mt-3 space-y-3">
-                        {!safeUrl(fp.image) ? <p className="text-xs text-amber-700">Add the 2D plan image link above to see the preview.</p> : (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
-                                    <label>Wall darkness ({fp.auto_3d_threshold})<input type="range" min="30" max="200" step="5" value={fp.auto_3d_threshold} onChange={(e) => set({ auto_3d_threshold: Number(e.target.value) })} className="w-full" aria-label="Wall darkness" /></label>
-                                    <label>Ignore thin lines ({fp.auto_3d_detail})<input type="range" min="0" max="3" step="1" value={fp.auto_3d_detail} onChange={(e) => set({ auto_3d_detail: Number(e.target.value) })} className="w-full" aria-label="Ignore thin lines" /></label>
-                                    <label>Wall height ({fp.auto_3d_height})<input type="range" min="2" max="15" step="0.5" value={fp.auto_3d_height} onChange={(e) => set({ auto_3d_height: Number(e.target.value) })} className="w-full" aria-label="Wall height" /></label>
+            <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-3" data-testid={`3d-view-section-${index}`}>
+                <div className="flex items-start justify-between gap-3">
+                    <label className="flex items-start gap-2.5 text-sm text-slate-800 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="mt-1 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                            checked={!!fp.auto_3d || !!fp.image_3d}
+                            onChange={(e) => set({ auto_3d: e.target.checked })}
+                            data-testid={`auto3d-${index}`}
+                        />
+                        <div>
+                            <span className="font-semibold text-[var(--navy)] flex items-center gap-1.5">
+                                <Box size={16} className="text-sky-600" /> 3D View Option (based on 3D Image)
+                            </span>
+                            <span className="block text-xs text-slate-500 mt-0.5">
+                                Showcases the realistic 3D floor plan image to visitors. Once uploaded, buyers can view and inspect the layout in 3D.
+                            </span>
+                        </div>
+                    </label>
+                    {fp.image_3d && (
+                        <span className="shrink-0 text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2.5 py-1 rounded-full">
+                            ✓ 3D Active
+                        </span>
+                    )}
+                </div>
+
+                {(fp.auto_3d || fp.image_3d) && (
+                    <div className="pt-2 border-t border-slate-100">
+                        {safeUrl(fp.image_3d) ? (
+                            <div className="space-y-2">
+                                <div className="relative rounded-xl border border-slate-200 bg-slate-50 p-2 flex flex-col items-center justify-center overflow-hidden">
+                                    <div className="relative w-full max-h-[380px] flex items-center justify-center bg-white rounded-lg p-2">
+                                        <img
+                                            src={safeUrl(fp.image_3d)}
+                                            alt={`3D floor plan layout ${index + 1}`}
+                                            className="max-h-[360px] max-w-full object-contain rounded drop-shadow-sm"
+                                            onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMG; }}
+                                        />
+                                        <div className="absolute top-3 left-3 flex gap-2">
+                                            <span className="text-[11px] font-medium bg-sky-600 text-white px-2.5 py-1 rounded-full shadow-sm">
+                                                3D View
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-full flex items-center justify-between text-xs text-slate-600 pt-2 px-1">
+                                        <span className="text-slate-500 truncate max-w-md">{fp.image_3d}</span>
+                                        <div className="flex items-center gap-3 shrink-0">
+                                            <UploadButton label="Replace 3D image" onDone={(u) => set({ image_3d: u, auto_3d: true, rooms_image: "3d" })} testId={`replace-3d-${index}`} />
+                                            <button
+                                                type="button"
+                                                onClick={() => set({ image_3d: "", auto_3d: false })}
+                                                className="text-xs text-red-600 hover:text-red-700 hover:underline"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <Suspense fallback={<div className="h-[320px] rounded-2xl skeleton" />}>
-                                    <Plan3D src={safeUrl(fp.image)} threshold={threshold} detail={detail} height={wallH} strict={false} onResult={setStats} className="h-[320px]" />
-                                </Suspense>
-                                {stats && (
-                                    <p className={`text-xs ${stats.rects >= 12 ? "text-slate-600" : "text-amber-700"}`} data-testid={`auto3d-stats-${index}`}>
-                                        Wall pieces found: {stats.rects}. {stats.rects < 12 ? "Too few: lower the darkness or the thin-line setting. Visitors will not see a 3D view until enough walls are found." : "If the walls look noisy, raise 'Ignore thin lines'. If walls are missing, raise 'Wall darkness'."}
-                                    </p>
-                                )}
-                            </>
+                            </div>
+                        ) : (
+                            <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <div className="text-xs font-semibold text-amber-900">No 3D image uploaded yet</div>
+                                    <div className="text-[11px] text-amber-800 mt-0.5">Upload or enter a 3D floor plan image above to show the 3D view to visitors.</div>
+                                </div>
+                                <UploadButton
+                                    label="Upload 3D Image"
+                                    onDone={(u) => set({ image_3d: u, auto_3d: true, rooms_image: "3d" })}
+                                    testId={`upload-3d-inline-${index}`}
+                                />
+                            </div>
                         )}
                     </div>
                 )}

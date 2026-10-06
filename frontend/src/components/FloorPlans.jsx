@@ -20,7 +20,7 @@ const normalize = (f) => {
         image3d: safeUrl(f.image_3d),
         download: safeUrl(f.download_url),
         rooms: (f.rooms || []).filter((r) => r.name),
-        canAuto: !!f.auto_3d && !!image,
+        canAuto: !!f.auto_3d && (!!safeUrl(f.image_3d) || !!image),
         areaType: f.area_type || (f.carpet_area_sqft ? "Carpet Area" : ""),
     };
 };
@@ -91,7 +91,7 @@ export default function FloorPlans({ property, onAction }) {
                                     ) : (
                                         <span className="w-full h-full grid place-items-center text-xs text-slate-400">Layout image coming soon</span>
                                     )}
-                                    {(p.image3d || p.canAuto) && <span className="absolute top-2 left-2 text-[10px] bg-sky-600 text-white px-2 py-0.5 rounded-full">3D</span>}
+                                    {(p.image3d || p.canAuto) && <span className="absolute top-2 left-2 text-[10px] bg-sky-600 text-white px-2 py-0.5 rounded-full font-medium shadow-sm">3D View</span>}
                                     {clickable && <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-[10px] bg-white/90 border border-slate-200 px-2 py-0.5 rounded-full"><Expand size={10} /> View details</span>}
                                 </button>
 
@@ -117,7 +117,7 @@ export default function FloorPlans({ property, onAction }) {
             {detail != null && plans[detail] && (
                 <PlanDetail
                     plan={plans[detail]} property={property}
-                    initialView={show3d ? (plans[detail].image3d ? "3d" : plans[detail].canAuto ? "auto" : "2d") : "2d"}
+                    initialView={show3d && plans[detail].image3d ? "3d" : (plans[detail].image3d ? "3d" : (plans[detail].image ? "2d" : "3d"))}
                     onClose={() => setDetail(null)}
                     onAction={(kind) => { const p = plans[detail]; setDetail(null); onAction(kind, p); }}
                 />
@@ -128,9 +128,9 @@ export default function FloorPlans({ property, onAction }) {
 
 function PlanDetail({ plan, property, initialView, onClose, onAction }) {
     const views = [
-        plan.image && { id: "2d", label: "2D plan" },
-        plan.image3d && { id: "3d", label: "3D image" },
-        plan.canAuto && { id: "auto", label: "3D view (approximate)" },
+        plan.image3d && { id: "3d", label: "3D View" },
+        plan.image && { id: "2d", label: "2D Plan" },
+        (!plan.image3d && plan.canAuto) && { id: "auto", label: "3D view (approximate)" },
     ].filter(Boolean);
     const [view, setView] = useState(views.some((v) => v.id === initialView) ? initialView : views[0]?.id);
     const [unit, setUnit] = useState("ft");
@@ -267,7 +267,7 @@ function PlanDetail({ plan, property, initialView, onClose, onAction }) {
                 </div>
             </div>
             {zoom && shownImage && (
-                <Lightbox items={[{ src: shownImage, alt: `${plan.config} floor plan`, download: plan.download || shownImage }]} index={0} onIndex={() => {}} onClose={() => setZoom(false)} label="Floor plan viewer" />
+                <Lightbox items={[{ src: shownImage, alt: `${property.name} · ${plan.config} ${view === "3d" ? "3D Floor Plan" : "2D Floor Plan"}`, download: plan.download || shownImage }]} index={0} onIndex={() => {}} onClose={() => setZoom(false)} label="Floor plan viewer" />
             )}
         </div>
     );
