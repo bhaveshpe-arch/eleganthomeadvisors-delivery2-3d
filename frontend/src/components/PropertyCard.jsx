@@ -97,10 +97,10 @@ export default function PropertyCard({ property, reasons = [] }) {
 
                 <div className="mt-4 pt-3 border-t border-slate-100">
                     <div className="grid grid-cols-2 gap-2">
-                        <button type="button" onClick={() => setDialog("site_visit")} className="flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-full bg-[var(--gold)] hover:bg-[var(--gold-dark)] text-[var(--navy)] font-semibold transition-all shadow-sm" data-testid={`visit-${property.slug}`}>
+                        <button type="button" onClick={() => setDialog("site_visit")} className="flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-full bg-[var(--gold)] hover:bg-[var(--gold-dark)] text-[var(--navy)] font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95" data-testid={`visit-${property.slug}`}>
                             <CalendarCheck size={14} /> Schedule Visit
                         </button>
-                        <button type="button" onClick={() => setDialog("enquiry")} className="flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-full bg-[var(--navy)] hover:bg-[var(--navy-hover)] text-white font-medium transition-all shadow-sm" data-testid={`enquire-${property.slug}`}>
+                        <button type="button" onClick={() => setDialog("enquiry")} className="flex items-center justify-center gap-1.5 text-xs py-2.5 rounded-full bg-[var(--navy)] hover:bg-[var(--navy-hover)] text-white font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95" data-testid={`enquire-${property.slug}`}>
                             <MessageSquare size={14} /> Enquire
                         </button>
                     </div>

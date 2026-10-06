@@ -13,6 +13,7 @@ import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import CookieBanner from "@/components/CookieBanner";
 import CompareBar from "@/components/CompareBar";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ScrollReveal from "@/components/ScrollReveal";
 
 import Home from "@/pages/Home";
 
@@ -52,6 +53,7 @@ const PageLoader = () => (
 
 const PublicLayout = ({ children }) => (
     <div className="min-h-screen flex flex-col">
+        <ScrollReveal />
         <a href="#main" className="skip-link">Skip to main content</a>
         <Header />
         <main id="main" className="flex-1" tabIndex={-1}>

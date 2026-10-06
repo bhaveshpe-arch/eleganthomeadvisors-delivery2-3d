@@ -148,7 +148,7 @@ export default function Home() {
             </section>
 
             {/* Featured Projects */}
-            <section className="py-24 max-w-[1400px] mx-auto px-6 lg:px-10" data-testid="featured-section">
+            <section className="py-24 max-w-[1400px] mx-auto px-6 lg:px-10 reveal" data-testid="featured-section">
                 <div className="flex items-end justify-between gap-6 mb-10">
                     <div>
                         <div className="overline">Handpicked this month</div>
@@ -156,7 +156,7 @@ export default function Home() {
                     </div>
                     <Link to="/properties" className="hidden md:inline-flex items-center gap-1 text-sm font-medium text-[var(--navy)] gold-underline">View all <ChevronRight size={16} /></Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 reveal-stagger">
                     {loadingFeatured
                         ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-[28rem] rounded-2xl skeleton" />)
                         : featured.slice(0, 6).map((p) => <PropertyCard key={p.id} property={p} />)}
@@ -167,19 +167,19 @@ export default function Home() {
             </section>
 
             {/* Browse by Category — asymmetric bento */}
-            <section className="py-20 bg-white border-y border-slate-100" data-testid="categories-section">
+            <section className="py-20 bg-white border-y border-slate-100 reveal" data-testid="categories-section">
                 <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
                     <div className="max-w-2xl mb-12">
                         <div className="overline">Explore by Aspiration</div>
                         <h2 className="font-serif-display text-4xl md:text-5xl text-[var(--navy)] mt-2">Browse by Category</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-6 reveal-stagger">
                         {categoryCards.map((c, i) => (
                             <Link
                                 to={`/properties?category=${encodeURIComponent(c.name)}`}
                                 key={c.name}
                                 data-testid={`category-${c.name.toLowerCase().replace(/\s+/g, "-")}`}
-                                className={`relative group overflow-hidden rounded-2xl h-72 md:h-80 ${i === 0 ? "md:col-span-3" : "md:col-span-3"} ${i === 1 ? "lg:col-span-2" : ""}`}
+                                className={`relative group overflow-hidden rounded-2xl h-72 md:h-80 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl ${i === 0 ? "md:col-span-3" : "md:col-span-3"} ${i === 1 ? "lg:col-span-2" : ""}`}
                             >
                                 <img src={c.image} alt={c.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)]/85 via-[var(--navy)]/30 to-transparent" />
@@ -196,7 +196,7 @@ export default function Home() {
             </section>
 
             {/* Browse by Location */}
-            <section className="py-24 max-w-[1400px] mx-auto px-6 lg:px-10" data-testid="locations-section">
+            <section className="py-24 max-w-[1400px] mx-auto px-6 lg:px-10 reveal" data-testid="locations-section">
                 <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
                     <div>
                         <div className="overline">Prime neighbourhoods</div>
@@ -204,7 +204,7 @@ export default function Home() {
                     </div>
                     <div className="text-sm text-slate-500 max-w-md">From Marine Drive's Queen's Necklace to the tranquil forests of Yeoor — every micro-market, curated.</div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 reveal-stagger">
                     {locationCards.map((l) => (
                         <Link
                             to={`/properties?location=${encodeURIComponent(l.name)}`}
@@ -225,14 +225,14 @@ export default function Home() {
             </section>
 
             {/* Why Choose */}
-            <section className="py-24 bg-[var(--navy)] text-white" data-testid="why-section">
+            <section className="py-24 bg-[var(--navy)] text-white reveal" data-testid="why-section">
                 <div className="max-w-[1400px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-3 gap-12">
                     <div className="lg:col-span-1">
                         <div className="overline text-[var(--gold)]">Why Elegant</div>
                         <h2 className="font-serif-display text-4xl md:text-5xl mt-2 leading-tight">A quieter, wiser way to buy.</h2>
                         <p className="text-slate-300 mt-5 leading-relaxed">We're not a directory. We are your family's private property advisor — patient, discreet, and always in your corner.</p>
                     </div>
-                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 reveal-stagger">
                         {WHY.map((w) => (
                             <div key={w.title} className="p-6 rounded-2xl border border-slate-800 bg-white/[0.03] backdrop-blur-sm" data-testid={`why-${w.title.toLowerCase().replace(/\s+/g, "-")}`}>
                                 <div className="w-11 h-11 rounded-full grid place-items-center bg-[var(--gold)]/15 text-[var(--gold)]">
