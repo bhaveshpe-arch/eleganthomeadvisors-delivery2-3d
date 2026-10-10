@@ -1,4 +1,4 @@
-// Lead statuses, kinds and date helpers shared by the admin and employee screens.
+// Lead statuses, kinds and date helpers shared by the admin screens.
 export const STATUSES = [
     { value: "new", label: "New", cls: "bg-slate-100 text-slate-700" },
     { value: "contacted", label: "Contacted", cls: "bg-blue-100 text-blue-700" },

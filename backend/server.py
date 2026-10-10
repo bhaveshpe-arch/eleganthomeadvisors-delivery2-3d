@@ -43,11 +43,6 @@ RESEND_FROM = os.environ.get("RESEND_FROM", "Elegant Home Advisors <onboarding@r
 if RESEND_API_KEY:
     resend.api_key = RESEND_API_KEY
 
-# Web push (employee lead notifications)
-VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "").strip()
-VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
-VAPID_CLAIMS_EMAIL = os.environ.get("VAPID_CLAIMS_EMAIL", "mailto:admin@eleganthomeadvisors.in")
-
 INQUIRY_STATUSES = [
     "new", "contacted", "site_visit_requested", "site_visit_scheduled", "site_visit_completed",
     "site_visit_cancelled", "follow_up_required", "negotiation", "closed_won", "closed_lost",
@@ -111,19 +106,14 @@ async def get_current_user(request: Request) -> dict:
     user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    # Only the admin signs in. Employee records are kept for lead assignment but cannot log in,
+    # and any token an employee was issued earlier stops working here.
+    if user.get("role", "admin") != "admin":
+        raise HTTPException(status_code=401, detail="Not authenticated")
     return user
 
 async def get_current_admin(request: Request) -> dict:
-    user = await get_current_user(request)
-    if user.get("role", "admin") != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return user
-
-async def get_current_employee(request: Request) -> dict:
-    user = await get_current_user(request)
-    if user.get("role") != "employee":
-        raise HTTPException(status_code=403, detail="Employee access required")
-    return user
+    return await get_current_user(request)
 
 def strip_id(doc: dict) -> dict:
     if not doc:
@@ -311,14 +301,12 @@ class EmployeeIn(BaseModel):
     email: EmailStr
     phone: str = ""
     locations: List[str] = []
-    password: str
 
 class EmployeeUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     locations: Optional[List[str]] = None
     active: Optional[bool] = None
-    password: Optional[str] = None
 
 class EmployeeOut(BaseModel):
     id: str
@@ -343,11 +331,6 @@ class ScheduleIn(BaseModel):
 
 class NoteIn(BaseModel):
     text: str
-
-class PushSubscriptionIn(BaseModel):
-    model_config = ConfigDict(extra="allow")
-    endpoint: str
-    keys: dict
 
 class Testimonial(BaseModel):
     id: str = Field(default_factory=new_id)
@@ -383,10 +366,9 @@ async def login(payload: LoginIn, request: Request):
     rate_limit(request, "login", limit=10, window_s=600)
     email = payload.email.lower().strip()
     user = await db.users.find_one({"email": email})
-    if not user or not verify_password(payload.password, user["password_hash"]):
+    if (not user or user.get("role", "admin") != "admin"
+            or not verify_password(payload.password, user.get("password_hash", ""))):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    if user.get("role") == "employee" and not user.get("active", True):
-        raise HTTPException(status_code=403, detail="Your account has been deactivated. Contact your admin.")
     token = create_token(user["id"], email)
     return {
         "access_token": token,
@@ -867,32 +849,6 @@ async def find_employee_for_location(location: str) -> Optional[dict]:
     ])
     return sorted(zip(employees, counts), key=lambda pair: pair[1])[0][0]
 
-async def notify_employee_push(employee_id: str, title: str, body: str, url: str = "/employee") -> None:
-    if not (VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY):
-        return
-    subs = await db.push_subscriptions.find({"user_id": employee_id}, {"_id": 0}).to_list(20)
-    if not subs:
-        return
-    import json as _json
-    from pywebpush import webpush, WebPushException
-    data = _json.dumps({"title": title, "body": body, "url": url})
-    for s in subs:
-        try:
-            await asyncio.to_thread(
-                webpush,
-                subscription_info=s["subscription"],
-                data=data,
-                vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims={"sub": VAPID_CLAIMS_EMAIL},
-            )
-        except WebPushException as e:
-            code = getattr(getattr(e, "response", None), "status_code", None)
-            logger.warning(f"Push failed for {employee_id}: {e}")
-            if code in (404, 410):
-                await db.push_subscriptions.delete_many({"user_id": employee_id, "subscription.endpoint": s["subscription"].get("endpoint")})
-        except Exception as e:
-            logger.warning(f"Push error for {employee_id}: {e}")
-
 # ---------- Inquiries ----------
 def _clean(text: str, max_len: int) -> str:
     return (text or "").strip()[:max_len]
@@ -972,29 +928,15 @@ async def submit_inquiry(payload: InquiryIn, request: Request):
         f"New {inq.kind} from {inq.full_name} for {inq.property_name or inq.inquiry_type} "
         f"· location={location or 'n/a'} · assigned={inq.assigned_employee_name or 'unassigned'}"
     )
-    # Fire-and-forget email notification to admin, and push notification to the employee
+    # Fire-and-forget email notification to admin
     asyncio.create_task(send_lead_email(inq))
-    if employee:
-        asyncio.create_task(notify_employee_push(
-            employee["id"], title=("New site visit request" if inq.kind == "site_visit" else "New lead assigned to you"),
-            body=f"{inq.full_name} · {inq.property_name or inq.inquiry_type}",
-        ))
     return inq
-
-@api.get("/inquiries/mine", response_model=List[Inquiry])
-async def list_my_inquiries(current=Depends(get_current_employee)):
-    docs = await db.inquiries.find({"assigned_employee_id": current["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    return docs
-
-def _can_touch(current: dict, doc: dict) -> bool:
-    return current.get("role", "admin") == "admin" or doc.get("assigned_employee_id") == current["id"]
 
 @api.patch("/inquiries/{iid}/assign", response_model=Inquiry)
 async def assign_inquiry(iid: str, payload: AssignIn, current=Depends(get_current_admin)):
     doc = await db.inquiries.find_one({"id": iid})
     if not doc:
         raise HTTPException(status_code=404, detail="Inquiry not found")
-    employee = None
     update = {"assigned_employee_id": None, "assigned_employee_name": ""}
     event = add_activity("assigned", "Unassigned", by=current.get("name", "Admin"))
     if payload.employee_id:
@@ -1004,11 +946,6 @@ async def assign_inquiry(iid: str, payload: AssignIn, current=Depends(get_curren
         update = {"assigned_employee_id": employee["id"], "assigned_employee_name": employee.get("name", "")}
         event = add_activity("assigned", f"Assigned to {employee.get('name', '')}", by=current.get("name", "Admin"))
     await db.inquiries.update_one({"id": iid}, {"$set": update, "$push": {"activity": event}})
-    if employee:
-        asyncio.create_task(notify_employee_push(
-            employee["id"], title="Lead assigned to you",
-            body=f"{doc.get('full_name')} · {doc.get('property_name') or doc.get('inquiry_type')}",
-        ))
     return await db.inquiries.find_one({"id": iid}, {"_id": 0})
 
 @api.patch("/inquiries/{iid}/status", response_model=Inquiry)
@@ -1016,8 +953,6 @@ async def update_inquiry_status(iid: str, payload: StatusIn, current=Depends(get
     doc = await db.inquiries.find_one({"id": iid})
     if not doc:
         raise HTTPException(status_code=404, detail="Inquiry not found")
-    if not _can_touch(current, doc):
-        raise HTTPException(status_code=403, detail="This lead isn't assigned to you")
     if payload.status not in INQUIRY_STATUSES:
         raise HTTPException(status_code=400, detail=f"Status must be one of {INQUIRY_STATUSES}")
     if doc.get("status") == payload.status:
@@ -1035,8 +970,6 @@ async def schedule_inquiry(iid: str, payload: ScheduleIn, current=Depends(get_cu
     doc = await db.inquiries.find_one({"id": iid})
     if not doc:
         raise HTTPException(status_code=404, detail="Inquiry not found")
-    if not _can_touch(current, doc):
-        raise HTTPException(status_code=403, detail="This lead isn't assigned to you")
     fields = payload.model_dump(exclude_unset=True)
     for key in ("site_visit_date", "follow_up_date"):
         if fields.get(key) and not valid_iso_date(fields[key]):
@@ -1067,8 +1000,6 @@ async def add_inquiry_note(iid: str, payload: NoteIn, current=Depends(get_curren
     doc = await db.inquiries.find_one({"id": iid})
     if not doc:
         raise HTTPException(status_code=404, detail="Inquiry not found")
-    if not _can_touch(current, doc):
-        raise HTTPException(status_code=403, detail="This lead isn't assigned to you")
     text = _clean(payload.text, 2000)
     if not text:
         raise HTTPException(status_code=400, detail="Note can't be empty")
@@ -1106,8 +1037,6 @@ def _and(*parts: dict) -> dict:
     return {"$and": parts} if parts else {}
 
 async def _visit_owner_filter(current: dict, employee_id: Optional[str]) -> dict:
-    if current.get("role", "admin") == "employee":
-        return {"assigned_employee_id": current["id"]}
     if employee_id == "unassigned":
         return {"$or": [{"assigned_employee_id": None}, {"assigned_employee_id": {"$exists": False}}]}
     if employee_id:
@@ -1193,7 +1122,6 @@ async def create_employee(payload: EmployeeIn, current=Depends(get_current_admin
     doc = {
         "id": new_id(),
         "email": email,
-        "password_hash": hash_password(payload.password),
         "name": payload.name,
         "phone": payload.phone,
         "locations": payload.locations,
@@ -1209,9 +1137,7 @@ async def create_employee(payload: EmployeeIn, current=Depends(get_current_admin
 async def update_employee(eid: str, payload: EmployeeUpdate, current=Depends(get_current_admin)):
     if not await db.users.find_one({"id": eid, "role": "employee"}):
         raise HTTPException(status_code=404, detail="Employee not found")
-    update = {k: v for k, v in payload.model_dump(exclude_unset=True).items() if k != "password"}
-    if payload.password:
-        update["password_hash"] = hash_password(payload.password)
+    update = payload.model_dump(exclude_unset=True)
     if update:
         await db.users.update_one({"id": eid}, {"$set": update})
     return await db.users.find_one({"id": eid}, {"_id": 0, "password_hash": 0})
@@ -1248,25 +1174,6 @@ async def get_insights(current=Depends(get_current_admin)):
         "by_employee": by_employee,
         "conversion_rate": conversion_rate,
     }
-
-# ---------- CRM: web push subscriptions ----------
-@api.get("/push/public-key")
-async def push_public_key():
-    return {"public_key": VAPID_PUBLIC_KEY}
-
-@api.post("/push/subscribe")
-async def push_subscribe(payload: PushSubscriptionIn, current=Depends(get_current_user)):
-    sub = payload.model_dump()
-    await db.push_subscriptions.delete_many({"user_id": current["id"], "subscription.endpoint": sub.get("endpoint")})
-    await db.push_subscriptions.insert_one({
-        "id": new_id(), "user_id": current["id"], "subscription": sub, "created_at": utcnow_iso(),
-    })
-    return {"ok": True}
-
-@api.post("/push/unsubscribe")
-async def push_unsubscribe(payload: dict, current=Depends(get_current_user)):
-    await db.push_subscriptions.delete_many({"user_id": current["id"], "subscription.endpoint": payload.get("endpoint")})
-    return {"ok": True}
 
 
 async def send_lead_email(inq: "Inquiry") -> None:

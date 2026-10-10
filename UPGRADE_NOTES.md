@@ -19,7 +19,7 @@ field is optional, so existing properties, enquiries, employees and URLs keep wo
 | `CORS_ORIGINS` | Strongly advised | Set to your site, e.g. `https://eleganthomeadvisors.in`. It currently defaults to `*`. |
 | `SITE_URL` | Recommended | Used in `sitemap.xml`. Defaults to `https://eleganthomeadvisors.in`. |
 | `SIMILARITY_WEIGHTS` | Optional | JSON, e.g. `{"location":40,"price":20}`. Keys left out keep their default. |
-| `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `RESEND_API_KEY`, `NOTIFY_EMAIL`, `VAPID_*` | As before | Unchanged. |
+| `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `RESEND_API_KEY`, `NOTIFY_EMAIL` | As before | Unchanged. `VAPID_*` is no longer used and can be deleted. |
 
 Frontend (build-time): `REACT_APP_BACKEND_URL` as before. Optional `REACT_APP_SITE_URL` for canonical links.
 
@@ -28,7 +28,7 @@ Frontend (build-time): `REACT_APP_BACKEND_URL` as before. Optional `REACT_APP_SI
 The backend serves `/api/sitemap.xml`. To have `https://yourdomain/sitemap.xml` work, add a **Rewrite** rule on the
 Render static site: source `/sitemap.xml`, destination `https://<your-backend>.onrender.com/api/sitemap.xml`
 (Render accepts a full public URL as a rewrite destination). Then submit the sitemap in Google Search Console.
-`frontend/public/robots.txt` already points to `/sitemap.xml` and hides `/admin` and `/employee`.
+`frontend/public/robots.txt` already points to `/sitemap.xml` and hides `/admin`.
 
 ## 2. What the admin can now do
 
@@ -106,11 +106,14 @@ the built-in counters in Admin -> Insights already cover views, saves, compares 
 Windows has no built-in time-zone database, so the backend now lists `tzdata` in `requirements.txt`, and falls back to a
 fixed +05:30 offset (India has no daylight saving) if the database is still missing. On Render (Linux) nothing changes.
 
-## 10. Employee app install prompt
+## 10. Employee portal removed
 
-The "install as app" manifest (`/manifest.json`) is now attached only while an employee page (`/employee/...`) is open,
-so public visitors are not offered an install prompt for the employee app. Employees open `/employee/login` on their
-phone and use "Add to Home Screen" as before.
+The employee login (`/employee/login`), the employee dashboard, the "install as app" manifest and phone push
+notifications were removed, ahead of moving to a third-party CRM. Only the admin can sign in. Employees still exist
+under Admin -> Employees as records (name, email, phone, locations) so leads can be assigned to them, but they have no
+password and cannot log in; any token an employee already had stops working. `pywebpush` was dropped from
+`requirements.txt`, and the browser removes the old `/sw.js` service worker on its next visit. The leftover
+`push_subscriptions` collection in MongoDB is unused and can be dropped.
 
 ## 11. Floor plans & pricing, 3D, room highlights
 

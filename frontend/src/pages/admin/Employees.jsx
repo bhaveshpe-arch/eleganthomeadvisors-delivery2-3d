@@ -3,7 +3,7 @@ import api, { formatApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { Save, Trash2, Pencil, X } from "lucide-react";
 
-const empty = { name: "", email: "", phone: "", password: "", locations: [], active: true };
+const empty = { name: "", email: "", phone: "", locations: [], active: true };
 
 export default function AdminEmployees() {
     const [items, setItems] = useState([]);
@@ -27,26 +27,25 @@ export default function AdminEmployees() {
 
     const edit = (emp) => {
         setEditingId(emp.id);
-        setF({ name: emp.name, email: emp.email, phone: emp.phone || "", password: "", locations: emp.locations || [], active: emp.active });
+        setF({ name: emp.name, email: emp.email, phone: emp.phone || "", locations: emp.locations || [], active: emp.active });
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const cancelEdit = () => { setEditingId(null); setF(empty); };
 
     const save = async () => {
-        if (!f.name || !f.email || (!editingId && !f.password)) {
-            toast.error("Name, email and password are required");
+        if (!f.name || !f.email) {
+            toast.error("Name and email are required");
             return;
         }
         setBusy(true);
         try {
             if (editingId) {
                 const payload = { name: f.name, phone: f.phone, locations: f.locations, active: f.active };
-                if (f.password) payload.password = f.password;
                 await api.put(`/employees/${editingId}`, payload);
                 toast.success("Employee updated");
             } else {
-                await api.post("/employees", { name: f.name, email: f.email, phone: f.phone, locations: f.locations, password: f.password });
+                await api.post("/employees", { name: f.name, email: f.email, phone: f.phone, locations: f.locations });
                 toast.success("Employee added");
             }
             cancelEdit();
@@ -71,8 +70,8 @@ export default function AdminEmployees() {
                 <div className="overline">Field team</div>
                 <h1 className="font-serif-display text-4xl text-[var(--navy)] mt-1">Employees</h1>
                 <p className="text-sm text-slate-500 mt-2 max-w-xl">
-                    Assign one or more locations to each employee. New inquiries for that location route to them
-                    automatically, and they'll see it on their phone the moment it lands.
+                    Assign one or more locations to each employee. New inquiries for that location are assigned to
+                    them automatically. Employees don't sign in to this site.
                 </p>
             </div>
 
@@ -89,8 +88,6 @@ export default function AdminEmployees() {
                             className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400" data-testid="emp-email" />
                         <input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="Phone"
                             className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm" data-testid="emp-phone" />
-                        <input value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} placeholder={editingId ? "New password (leave blank to keep current)" : "Password"} type="password"
-                            className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm" data-testid="emp-password" />
 
                         <div>
                             <div className="text-xs text-slate-600 mb-1.5">Assigned locations</div>
@@ -108,7 +105,7 @@ export default function AdminEmployees() {
                         {editingId && (
                             <label className="flex items-center gap-2 text-sm text-slate-600 pt-1">
                                 <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} />
-                                Active (can sign in and receive leads)
+                                Active (receives new leads)
                             </label>
                         )}
 

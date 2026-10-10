@@ -40,9 +40,6 @@ const AdminEmployees = lazy(() => import("@/pages/admin/Employees"));
 const AdminLocations = lazy(() => import("@/pages/admin/Locations"));
 const AdminInsights = lazy(() => import("@/pages/admin/Insights"));
 
-const EmployeeLogin = lazy(() => import("@/pages/employee/Login"));
-const EmployeeLayout = lazy(() => import("@/pages/employee/EmployeeLayout"));
-const EmployeeDashboard = lazy(() => import("@/pages/employee/Dashboard"));
 
 const PageLoader = () => (
     <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-24" role="status" aria-label="Loading">
@@ -110,11 +107,6 @@ function App() {
                                     <Route path="testimonials" element={<AdminTestimonials />} />
                                     <Route path="faqs" element={<AdminFAQs />} />
                                     <Route path="settings" element={<AdminSettings />} />
-                                </Route>
-
-                                <Route path="/employee/login" element={<EmployeeLogin />} />
-                                <Route path="/employee" element={<EmployeeLayout />}>
-                                    <Route index element={<EmployeeDashboard />} />
                                 </Route>
 
                                 <Route path="*" element={<PublicLayout><Home /></PublicLayout>} />

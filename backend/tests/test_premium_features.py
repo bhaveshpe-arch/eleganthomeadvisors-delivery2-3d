@@ -99,7 +99,7 @@ def test_similarity_handles_missing_fields_and_weights():
 def test_site_visit_flow_activity_and_dashboard(client, admin):
     prop = client.get("/api/properties").json()[0]
     emp = client.post("/api/employees", headers=admin, json={
-        "name": "Rahul", "email": "rahul@test.com", "password": "Rahul#12345", "locations": [prop["location"]]})
+        "name": "Rahul", "email": "rahul@test.com", "locations": [prop["location"]]})
     assert emp.status_code == 200
     r = client.post("/api/inquiries", json={
         "inquiry_type": "Site Visit", "full_name": "Asha Rao", "phone": "9876543210", "email": "asha@example.com",
@@ -130,13 +130,14 @@ def test_site_visit_flow_activity_and_dashboard(client, admin):
     kinds = [a["type"] for a in final["activity"]]
     assert kinds[:2] == ["created", "assigned"] and "visit" in kinds and "status" in kinds and kinds[-1] == "note"
 
-    # the employee only sees their own work, and cannot reach admin-only data
-    tok = client.post("/api/auth/login", json={"email": "rahul@test.com", "password": "Rahul#12345"}).json()["access_token"]
-    eh = {"Authorization": f"Bearer {tok}"}
-    assert len(client.get("/api/site-visits", headers=eh).json()) >= 1
-    assert client.get("/api/inquiries", headers=eh).status_code == 403
-    assert client.get("/api/inquiries/export.csv", headers=eh).status_code == 403   # was open to any user before
-    assert client.get("/api/analytics/summary", headers=eh).status_code == 403
+    # employees are assignment records only: they cannot sign in, and a token issued to one
+    # before the employee portal was removed no longer opens anything
+    assert client.post("/api/auth/login", json={"email": "rahul@test.com", "password": "Rahul#12345"}).status_code == 401
+    eh = {"Authorization": f"Bearer {server.create_token(emp.json()['id'], 'rahul@test.com')}"}
+    assert client.get("/api/site-visits", headers=eh).status_code == 401
+    assert client.get("/api/auth/me", headers=eh).status_code == 401
+    assert client.get("/api/inquiries/mine", headers=eh).status_code in (404, 405)
+    assert client.get("/api/push/public-key").status_code == 404
 
 
 def test_public_validation_and_old_payload(client):

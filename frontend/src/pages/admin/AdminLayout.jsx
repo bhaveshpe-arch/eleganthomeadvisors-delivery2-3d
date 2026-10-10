@@ -22,7 +22,7 @@ export default function AdminLayout() {
 
     if (loading) return <div className="p-16 text-center text-slate-500">Loading…</div>;
     if (!user) return <Navigate to="/admin/login" replace />;
-    if (user.role !== "admin") return <Navigate to="/employee" replace />;
+    if (user.role !== "admin") return <Navigate to="/admin/login" replace />;
 
     return (
         <div className="min-h-screen bg-slate-50" data-testid="admin-layout">

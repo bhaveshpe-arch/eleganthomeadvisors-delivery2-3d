@@ -22,10 +22,8 @@ root.render(
   </React.StrictMode>,
 );
 
-// Register the service worker used for employee push notifications.
-// It's inert for everyone else — no caching, no effect on normal browsing.
+// An earlier version registered /sw.js for employee push notifications. That feature is gone,
+// so remove the worker from any browser that still has it.
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
 }
